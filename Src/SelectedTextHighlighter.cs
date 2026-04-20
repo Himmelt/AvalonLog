@@ -1,0 +1,131 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Windows;
+using AvalonEditB;
+using AvalonEditB.Document;
+using AvalonEditB.Rendering;
+using System.Windows.Media;
+
+namespace AvalonLog;
+
+public class SelectedTextHighlighter : DocumentColorizingTransformer
+{
+    private readonly TextEditor _lg;
+    private bool _isEnabled = true;
+    private string? _highTxt;
+    private int _curSelStart = -1;
+    private int _curSelEnd = -1;
+    private SolidColorBrush _colorHighlight;
+
+    public event Action? OnHighlightCleared;
+    public event Action<string, List<int>>? OnHighlightChanged;
+
+    public SelectedTextHighlighter(TextEditor lg)
+    {
+        _lg = lg;
+        _colorHighlight = BrushHelper.FreezeIt(BrushHelper.Brighter(210, Brushes.Blue));
+    }
+
+    private void SelectionChanged()
+    {
+        if (!_isEnabled) return;
+
+        string? selTxt = null;
+        var sel = _lg.TextArea.Selection;
+
+        if (sel.Length >= 2 && sel.StartPosition.Line == sel.EndPosition.Line)
+        {
+            string selt = _lg.SelectedText;
+            if (selt.Trim().Length >= 2)
+                selTxt = selt;
+        }
+
+        if (!string.IsNullOrEmpty(selTxt))
+        {
+            _highTxt = selTxt;
+            _curSelStart = _lg.SelectionStart;
+            _curSelEnd = _curSelStart + selTxt.Length - 1;
+            _lg.TextArea.TextView.Redraw();
+
+            var doc = _lg.Document;
+            var selTxtCapture = selTxt;
+            Task.Run(() =>
+            {
+                string tx = doc.CreateSnapshot().Text;
+                var locations = new List<int>();
+                int index = tx.IndexOf(selTxtCapture, 0, StringComparison.Ordinal);
+                while (index >= 0)
+                {
+                    locations.Add(index);
+                    int st = index + selTxtCapture.Length;
+                    if (st >= tx.Length) break;
+                    index = tx.IndexOf(selTxtCapture, st, StringComparison.Ordinal);
+                }
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    OnHighlightChanged?.Invoke(selTxtCapture, locations);
+                });
+            });
+        }
+        else
+        {
+            if (Util.NotNull(_highTxt))
+            {
+                _highTxt = null;
+                _lg.TextArea.TextView.Redraw();
+                OnHighlightCleared?.Invoke();
+            }
+        }
+    }
+
+    public SolidColorBrush ColorHighlighting
+    {
+        get => _colorHighlight;
+        set => _colorHighlight = BrushHelper.FreezeIt(value);
+    }
+
+    public bool IsEnabled
+    {
+        get => _isEnabled;
+        set
+        {
+            _isEnabled = value;
+            if (value) SelectionChanged();
+            else if (Util.NotNull(_highTxt))
+            {
+                _lg.TextArea.TextView.Redraw();
+                OnHighlightCleared?.Invoke();
+            }
+        }
+    }
+
+    protected override void ColorizeLine(DocumentLine line)
+    {
+        if (!_isEnabled || _highTxt == null) return;
+
+        int lineStartOffset = line.Offset;
+        string text = _lg.Document.GetText(line);
+        int index = text.IndexOf(_highTxt, 0, StringComparison.Ordinal);
+
+        while (index >= 0)
+        {
+            int st = lineStartOffset + index;
+            int en = lineStartOffset + index + _highTxt.Length - 1;
+
+            if ((st < _curSelStart || st > _curSelEnd) && (en < _curSelStart || en > _curSelEnd))
+            {
+                ChangeLinePart(st, en + 1, el => el.TextRunProperties.SetBackgroundBrush(_colorHighlight));
+            }
+
+            int start = index + _highTxt.Length;
+            index = text.IndexOf(_highTxt, start, StringComparison.Ordinal);
+        }
+    }
+
+    public void SelectionChangedDelegate(object? sender, EventArgs e)
+    {
+        SelectionChanged();
+    }
+}
