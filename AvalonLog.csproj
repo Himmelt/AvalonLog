@@ -1,32 +1,34 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <UseWPF>true</UseWPF>
     <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
 
+  <!-- NuGet Package Metadata -->
+  <PropertyGroup>
+    <PackageId>Himmelt.AvalonLog</PackageId>
+    <Version>1.0.0</Version>
     <Authors>GoswinR, Himmelt</Authors>
-    <Copyright>Goswin Rothenthal, Himmelt 2026</Copyright>
-
-    <PackageDescription>一个快速且线程安全的 WPF 彩色文本日志查看器。基于 AvalonEdit</PackageDescription>
+    <Company>Himmelt</Company>
+    <Title>AvalonLog</Title>
     <Description>一个快速且线程安全的 WPF 彩色文本日志查看器。基于 AvalonEdit</Description>
-
-    <PackageTags>wpf;console;csharp;avalonedit</PackageTags>
-
+    <Copyright>Copyright © 2024-2026 Goswin Rothenthal, Himmelt</Copyright>
+    <PackageProjectUrl>https://github.com/Himmelt/AvalonLog</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Himmelt/AvalonLog</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>wpf;console;csharp;avalonedit;log;logger;colored</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>logo.png</PackageIcon>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <IncludeSymbols>true</IncludeSymbols>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageIcon>logo.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <DebugType>embedded</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-
-    <RepositoryUrl>https://github.com/Himmelt/AvalonLog</RepositoryUrl>
-
-    <Title>$(AssemblyName)</Title>
-
-    <PackageProjectUrl>https://github.com/Himmelt/AvalonLog</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,6 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
     <None Update="logo.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

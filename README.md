@@ -159,7 +159,7 @@ log.IsAlive = true;
 通过 NuGet 安装：
 
 ```
-dotnet add package AvalonLog
+dotnet add package Himmelt.AvalonLog
 ```
 
 ## 构建

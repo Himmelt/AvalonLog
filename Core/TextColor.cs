@@ -1,8 +1,6 @@
 using AvalonEditB;
 using AvalonEditB.Document;
 using AvalonEditB.Rendering;
-using System;
-using System.Collections.Generic;
 using System.Windows.Media;
 
 namespace AvalonLog.Core;
