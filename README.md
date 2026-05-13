@@ -2,7 +2,9 @@
 
 # AvalonLog
 
+[![AvalonLog on nuget.org](https://img.shields.io/nuget/v/Himmelt.AvalonLog)](https://www.nuget.org/packages/Himmelt.AvalonLog/)
 [![license](https://img.shields.io/github/license/Himmelt/AvalonLog)](LICENSE)
+![code size](https://img.shields.io/github/languages/code-size/Himmelt/AvalonLog.svg)
 
 AvalonLog 是一个快速且线程安全的 WPF 彩色文本日志查看器。基于 [AvalonEditB](https://github.com/goswinr/AvalonEditB)。适用于 .NET 10.0+（Windows）。
 
@@ -176,9 +178,9 @@ dotnet build
 | FSharp.Core 依赖 | 需要 | 无 |
 | F# printf 格式化 | 支持 | 不支持 |
 | 目标框架 | .NET Framework 4.7.2+, .NET 7.0+ | .NET 10.0 (Windows) |
-| 搜索面板 | — | 内置 |
-| 选中高亮 | — | 内置 |
-| 累计行号 | — | 裁剪后保持累计计数 |
+| 搜索面板 | 内置 | 内置 |
+| 选中高亮 | 内置 | 内置 |
+| 行数裁剪 | — | 阈值裁剪 |
 
 ## 致谢
 
