@@ -11,7 +11,7 @@
   <!-- NuGet Package Metadata -->
   <PropertyGroup>
     <PackageId>Himmelt.AvalonLog</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.2</Version>
     <Authors>GoswinR, Himmelt</Authors>
     <Company>Himmelt</Company>
     <Title>AvalonLog</Title>
@@ -27,8 +27,7 @@
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>embedded</DebugType>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
 
   <ItemGroup>

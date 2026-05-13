@@ -221,14 +221,6 @@ async def build_test_pack_and_publish(version: str) -> int:
         print("NuGet 包发布失败!")
         return result
 
-    # 发布符号包
-    if symbol_package_file:
-        print("发布符号包...")
-        result = await run_command(f"dotnet nuget push \"{symbol_package_file}\" --api-key {api_key} --source {nuget_source}")
-        if result != 0:
-            print("符号包发布失败!")
-            return result
-
     print(f"NuGet 包 {version} 发布成功!")
 
     return result
