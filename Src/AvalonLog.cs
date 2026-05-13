@@ -149,15 +149,20 @@ public class AvalonLog : ContentControl
         else if (_dontPrintJustBuffer)
         {
             long k = Interlocked.Increment(ref _printCallsCounter);
-            var timer = new Timer(_ =>
+            Timer? timer = null;
+            timer = new Timer(_ =>
             {
-                while (_dontPrintJustBuffer && _isAlive)
+                if (!_dontPrintJustBuffer || !_isAlive)
                 {
-                    Thread.Sleep(50);
+                    if (Interlocked.Read(ref _printCallsCounter) == k && _isAlive)
+                    {
+                        _log.Dispatcher.Invoke(PrintToLog);
+                    }
+                    timer?.Dispose();
                 }
-                if (Interlocked.Read(ref _printCallsCounter) == k && _isAlive)
+                else
                 {
-                    _log.Dispatcher.Invoke(PrintToLog);
+                    timer?.Change(50, Timeout.Infinite);
                 }
             }, null, 50, Timeout.Infinite);
         }
@@ -170,14 +175,15 @@ public class AvalonLog : ContentControl
             else
             {
                 long k = Interlocked.Increment(ref _printCallsCounter);
-                var action = new TimerCallback(_ =>
+                Timer? timer = null;
+                timer = new Timer(_ =>
                 {
                     if (Interlocked.Read(ref _printCallsCounter) == k && _isAlive)
                     {
                         _log.Dispatcher.Invoke(PrintToLog);
                     }
-                });
-                var timer = new Timer(action, null, _lastPrintDelay, Timeout.Infinite);
+                    timer?.Dispose();
+                }, null, _lastPrintDelay, Timeout.Infinite);
             }
         }
     }
@@ -341,24 +347,22 @@ public class AvalonLog : ContentControl
 
     public void AppendWithLastColor(string s)
     {
-        var br = _prevMsgBrush ?? _defaultBrush;
-        PrintOrBuffer(s, false, br);
+        PrintOrBuffer(s, false, _customBrush);
     }
 
     public void AppendLineWithLastColor(string s)
     {
-        var br = _prevMsgBrush ?? _defaultBrush;
-        PrintOrBuffer(s, true, br);
+        PrintOrBuffer(s, true, _customBrush);
     }
 
     public void Append(string s)
     {
-        PrintOrBuffer(s, false, _customBrush);
+        PrintOrBuffer(s, false, _defaultBrush);
     }
 
     public void AppendLine(string s)
     {
-        PrintOrBuffer(s, true, _customBrush);
+        PrintOrBuffer(s, true, _defaultBrush);
     }
 
     public void Append(string s, SolidColorBrush brush)
