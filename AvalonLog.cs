@@ -24,6 +24,7 @@ public class AvalonLog : ContentControl {
     private int _maxCharsInLog = 1024_000;
     private int _maxVisibleLines = 0;
     private double _trimRatio = 1.1;
+    private int _trimmedLineCount = 0;
     private bool _dontPrintJustBuffer = false;
     private bool _stillLessThanMaxChars = true;
     private SolidColorBrush? _prevMsgBrush = null;
@@ -63,8 +64,10 @@ public class AvalonLog : ContentControl {
         _log.TextArea.TextView.LineTransformers.Add(_hiLi);
         _log.TextArea.SelectionChanged += _hiLi.SelectionChangedDelegate;
 
-        if (_log.TextArea.LeftMargins[0] is LineNumberMargin lm) {
-            lm.HighlightCurrentLineNumber = false;
+        if (_log.TextArea.LeftMargins[0] is LineNumberMargin) {
+            _log.TextArea.LeftMargins[0] = new CumulativeLineNumberMargin(() => _trimmedLineCount) {
+                HighlightCurrentLineNumber = false
+            };
         }
 
         _defaultBrush = BrushHelper.FreezeIt((SolidColorBrush)_log.Foreground.Clone());
@@ -95,6 +98,7 @@ public class AvalonLog : ContentControl {
         int removeCount = lineCount - _maxVisibleLines;
         int removeLength = _log.Document.GetLineByNumber(removeCount + 1).Offset;
         _log.Document.Remove(0, removeLength);
+        _trimmedLineCount += removeCount;
 
         // Adjust _offsetColors: find last entry in removed range, keep it (Off=0), remove prior entries, shift remaining
         int lastInRangeIdx = -1;
@@ -303,6 +307,7 @@ public class AvalonLog : ContentControl {
             _docLength = 0;
             _prevMsgBrush = null;
             _stillLessThanMaxChars = true;
+            _trimmedLineCount = 0;
             Interlocked.Exchange(ref _printCallsCounter, 0L);
         }
 
