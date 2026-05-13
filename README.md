@@ -1,4 +1,4 @@
-![Logo](logo.png)
+![Logo](https://raw.githubusercontent.com/Himmelt/AvalonLog/main/logo.png)
 
 # AvalonLog
 
