@@ -9,41 +9,36 @@ using System.Windows.Media;
 
 namespace AvalonLog.Core;
 
-public class SelectedTextHighlighter : DocumentColorizingTransformer {
-    private readonly TextEditor _lg;
-    private bool _isEnabled = true;
+public class SelectedTextHighlighter(TextEditor lg) : DocumentColorizingTransformer {
+
     private string? _highTxt;
-    private int _curSelStart = -1;
     private int _curSelEnd = -1;
-    private SolidColorBrush _colorHighlight;
+    private int _curSelStart = -1;
+    private bool _isEnabled = true;
+    private SolidColorBrush _colorHighlight = BrushHelper.Brighter(210, Brushes.Blue);
 
     public event Action? OnHighlightCleared;
     public event Action<string, List<int>>? OnHighlightChanged;
-
-    public SelectedTextHighlighter(TextEditor lg) {
-        _lg = lg;
-        _colorHighlight = BrushHelper.Brighter(210, Brushes.Blue);
-    }
 
     private void SelectionChanged() {
         if (!_isEnabled) return;
 
         string? selTxt = null;
-        var sel = _lg.TextArea.Selection;
+        var sel = lg.TextArea.Selection;
 
         if (sel.Length >= 2 && sel.StartPosition.Line == sel.EndPosition.Line) {
-            string selt = _lg.SelectedText;
+            string selt = lg.SelectedText;
             if (selt.Trim().Length >= 2)
                 selTxt = selt;
         }
 
         if (!string.IsNullOrEmpty(selTxt)) {
             _highTxt = selTxt;
-            _curSelStart = _lg.SelectionStart;
+            _curSelStart = lg.SelectionStart;
             _curSelEnd = _curSelStart + selTxt.Length - 1;
-            _lg.TextArea.TextView.Redraw();
+            lg.TextArea.TextView.Redraw();
 
-            var doc = _lg.Document;
+            var doc = lg.Document;
             var selTxtCapture = selTxt;
             Task.Run(() => {
                 try {
@@ -67,7 +62,7 @@ public class SelectedTextHighlighter : DocumentColorizingTransformer {
         } else {
             if (_highTxt is not null) {
                 _highTxt = null;
-                _lg.TextArea.TextView.Redraw();
+                lg.TextArea.TextView.Redraw();
                 OnHighlightCleared?.Invoke();
             }
         }
@@ -84,7 +79,7 @@ public class SelectedTextHighlighter : DocumentColorizingTransformer {
             _isEnabled = value;
             if (value) SelectionChanged();
             else if (_highTxt is not null) {
-                _lg.TextArea.TextView.Redraw();
+                lg.TextArea.TextView.Redraw();
                 OnHighlightCleared?.Invoke();
             }
         }
@@ -94,7 +89,7 @@ public class SelectedTextHighlighter : DocumentColorizingTransformer {
         if (!_isEnabled || _highTxt == null) return;
 
         int lineStartOffset = line.Offset;
-        string text = _lg.Document.GetText(line);
+        string text = lg.Document.GetText(line);
         int index = text.IndexOf(_highTxt, 0, StringComparison.Ordinal);
 
         while (index >= 0) {

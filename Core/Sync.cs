@@ -6,8 +6,9 @@ using System.Windows.Threading;
 namespace AvalonLog.Core;
 
 internal static class SyncAvalonLog {
-    private static bool _errorFileWrittenOnce = false;
+
     private static SynchronizationContext? _ctx;
+    private static bool _errorFileWrittenOnce = false;
 
     private static void InstallSynchronizationContext(bool logErrorsOnDesktop) {
         if (SynchronizationContext.Current == null) {

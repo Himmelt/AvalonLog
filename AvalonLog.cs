@@ -15,27 +15,28 @@ using System.Windows.Media;
 namespace AvalonLog;
 
 public class AvalonLog : ContentControl {
-    private readonly List<NewColor> _offsetColors = [new NewColor(-1, null)];
-    private SolidColorBrush _defaultBrush = BrushHelper.FreezeIt(Brushes.Black);
-    private SolidColorBrush _customBrush = BrushHelper.FreezeIt(Brushes.Black);
 
-    private void SetCustomBrush(int red, int green, int blue) {
-        byte r = BrushHelper.ClampToByte(red);
-        byte g = BrushHelper.ClampToByte(green);
-        byte b = BrushHelper.ClampToByte(blue);
-        var col = _customBrush.Color;
-        if (col.R != r || col.G != g || col.B != b) {
-            _customBrush = BrushHelper.FreezeIt(new SolidColorBrush(Color.FromRgb(r, g, b)));
-        }
-    }
+    private int _docLength = 0;
+    private bool _isAlive = true;
+    private int _lastPrintDelay = 30;
+    private long _printInterval = 50L;
+    private long _printCallsCounter = 0;
+    private int _maxCharsInLog = 1024_000;
+    private bool _dontPrintJustBuffer = false;
+    private bool _stillLessThanMaxChars = true;
+    private SolidColorBrush? _prevMsgBrush = null;
 
     private readonly TextEditor _log = new();
-    private readonly SelectedTextHighlighter _hiLi;
-    private readonly ColorizingTransformer _color;
-
     private readonly SearchPanel _searchPanel;
+    private readonly ColorizingTransformer _color;
+    private readonly StringBuilder _buffer = new();
+    private readonly SelectedTextHighlighter _hiLi;
+    private readonly Stopwatch _stopWatch = Stopwatch.StartNew();
+    private readonly List<NewColor> _offsetColors = [new NewColor(-1, null)];
 
-    private bool _isAlive = true;
+    private static readonly string NewLine = Environment.NewLine;
+    private SolidColorBrush _customBrush = BrushHelper.FreezeIt(Brushes.Black);
+    private SolidColorBrush _defaultBrush = BrushHelper.FreezeIt(Brushes.Black);
 
     public AvalonLog() {
         _hiLi = new SelectedTextHighlighter(_log);
@@ -67,18 +68,15 @@ public class AvalonLog : ContentControl {
         _defaultBrush = BrushHelper.FreezeIt((SolidColorBrush)_log.Foreground.Clone());
     }
 
-    private long _printCallsCounter = 0;
-    private SolidColorBrush? _prevMsgBrush = null;
-    private readonly Stopwatch _stopWatch = Stopwatch.StartNew();
-    private readonly StringBuilder _buffer = new();
-    private int _docLength = 0;
-    private int _maxCharsInLog = 1024_000;
-    private bool _stillLessThanMaxChars = true;
-    private bool _dontPrintJustBuffer = false;
-    private long _printInterval = 50L;
-    private int _lastPrintDelay = 30;
-
-    private static readonly string NewLineStr = Environment.NewLine;
+    private void SetCustomBrush(int red, int green, int blue) {
+        byte r = BrushHelper.ClampToByte(red);
+        byte g = BrushHelper.ClampToByte(green);
+        byte b = BrushHelper.ClampToByte(blue);
+        var col = _customBrush.Color;
+        if (col.R != r || col.G != g || col.B != b) {
+            _customBrush = BrushHelper.FreezeIt(new SolidColorBrush(Color.FromRgb(r, g, b)));
+        }
+    }
 
     private string GetBufferText() {
         string txt = _buffer.ToString();
@@ -112,7 +110,7 @@ public class AvalonLog : ContentControl {
 
             if (addNewLine) {
                 _buffer.AppendLine(txt);
-                _docLength += txt.Length + NewLineStr.Length;
+                _docLength += txt.Length + NewLine.Length;
             } else {
                 _buffer.Append(txt);
                 _docLength += txt.Length;
@@ -122,7 +120,7 @@ public class AvalonLog : ContentControl {
         if (_docLength > _maxCharsInLog && _isAlive) {
             _stillLessThanMaxChars = false;
             try { _log.Dispatcher.Invoke(PrintToLog); } catch (InvalidOperationException) { } catch (TaskCanceledException) { }
-            string itsOverTxt = $"{NewLineStr}{NewLineStr}  **** STOP OF LOGGING **** Log has more than {_maxCharsInLog} characters! Clear Log view first {NewLineStr}{NewLineStr}{NewLineStr}{NewLineStr} ";
+            string itsOverTxt = $"{NewLine}{NewLine}  **** STOP OF LOGGING **** Log has more than {_maxCharsInLog} characters! Clear Log view first {NewLine}{NewLine}{NewLine}{NewLine} ";
             lock (_buffer) {
                 _offsetColors.Add(new NewColor(_docLength, BrushHelper.FreezeIt(Brushes.Red)));
                 _buffer.AppendLine(itsOverTxt);

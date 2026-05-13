@@ -7,14 +7,10 @@ using System.Windows.Media;
 
 namespace AvalonLog.Core;
 
-internal struct NewColor {
-    public int Off;
-    public SolidColorBrush? Brush;
+internal struct NewColor(int off, SolidColorBrush? brush) {
 
-    public NewColor(int off, SolidColorBrush? brush) {
-        Off = off;
-        Brush = brush;
-    }
+    public int Off = off;
+    public SolidColorBrush? Brush = brush;
 
     public static NewColor FindCurrentInList(List<NewColor> cs, int currOff) {
         int lo = 0;
@@ -35,16 +31,11 @@ internal struct NewColor {
     }
 }
 
-internal struct RangeColor {
-    public int Start;
-    public int Ende;
-    public SolidColorBrush? Brush;
+internal struct RangeColor(int start, int ende, SolidColorBrush? brush) {
 
-    public RangeColor(int start, int ende, SolidColorBrush? brush) {
-        Start = start;
-        Ende = ende;
-        Brush = brush;
-    }
+    public int Ende = ende;
+    public int Start = start;
+    public SolidColorBrush? Brush = brush;
 
     public static List<RangeColor> GetInRange(List<NewColor> cs, int stOff, int enOff) {
         var result = new List<RangeColor>();
@@ -66,29 +57,20 @@ internal struct RangeColor {
     }
 }
 
-internal class ColorizingTransformer : DocumentColorizingTransformer {
-    private readonly TextEditor _ed;
-    private readonly List<NewColor> _offsetColors;
-    private SolidColorBrush _defaultBrush;
+internal class ColorizingTransformer(TextEditor ed, List<NewColor> offsetColors, SolidColorBrush defaultBrush) : DocumentColorizingTransformer {
 
-    private int _selStart = -9;
     private int _selEnd = -9;
+    private int _selStart = -9;
 
-    public ColorizingTransformer(TextEditor ed, List<NewColor> offsetColors, SolidColorBrush defaultBrush) {
-        _ed = ed;
-        _offsetColors = offsetColors;
-        _defaultBrush = defaultBrush;
-    }
-
-    public void SetDefaultBrush(SolidColorBrush brush) => _defaultBrush = brush;
+    public void SetDefaultBrush(SolidColorBrush brush) => defaultBrush = brush;
 
     public void SelectionChangedDelegate(object? sender, EventArgs e) {
-        if (_ed.SelectionLength == 0) {
+        if (ed.SelectionLength == 0) {
             _selStart = -9;
             _selEnd = -9;
         } else {
-            _selStart = _ed.SelectionStart;
-            _selEnd = _selStart + _ed.SelectionLength;
+            _selStart = ed.SelectionStart;
+            _selEnd = _selStart + ed.SelectionLength;
         }
     }
 
@@ -97,13 +79,13 @@ internal class ColorizingTransformer : DocumentColorizingTransformer {
 
         int stLn = line.Offset;
         int enLn = line.EndOffset;
-        var cs = RangeColor.GetInRange(_offsetColors, stLn, enLn);
+        var cs = RangeColor.GetInRange(offsetColors, stLn, enLn);
         bool any = false;
 
         if (_selStart == _selEnd || _selStart > enLn || _selEnd < stLn) {
             foreach (var c in cs) {
                 if (c.Brush == null && any) {
-                    ChangeLinePart(c.Start, c.Ende, element => element.TextRunProperties.SetForegroundBrush(_defaultBrush));
+                    ChangeLinePart(c.Start, c.Ende, element => element.TextRunProperties.SetForegroundBrush(defaultBrush));
                 } else if (c.Brush != null) {
                     any = true;
                     ChangeLinePart(c.Start, c.Ende, el => el.TextRunProperties.SetForegroundBrush(c.Brush));
@@ -111,11 +93,11 @@ internal class ColorizingTransformer : DocumentColorizingTransformer {
             }
         } else {
             foreach (var c in cs) {
-                var br = c.Brush ?? _defaultBrush;
+                var br = c.Brush ?? defaultBrush;
                 int st = c.Start;
                 int en = c.Ende;
 
-                foreach (var seg in _ed.TextArea.Selection.Segments) {
+                foreach (var seg in ed.TextArea.Selection.Segments) {
                     if (seg.EndOffset < stLn) continue;
                     if (seg.StartOffset > enLn) continue;
 
