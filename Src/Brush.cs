@@ -37,12 +37,12 @@ public static class BrushHelper
 
     public static SolidColorBrush Brighter(int amount, SolidColorBrush br)
     {
-        return new SolidColorBrush { Color = ChangeLuminance(amount, br.Color) };
+        return FreezeIt(new SolidColorBrush { Color = ChangeLuminance(amount, br.Color) });
     }
 
     public static SolidColorBrush Darker(int amount, SolidColorBrush br)
     {
-        return new SolidColorBrush { Color = ChangeLuminance(-amount, br.Color) };
+        return FreezeIt(new SolidColorBrush { Color = ChangeLuminance(-amount, br.Color) });
     }
 }
 

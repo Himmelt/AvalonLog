@@ -24,7 +24,7 @@ public class SelectedTextHighlighter : DocumentColorizingTransformer
     public SelectedTextHighlighter(TextEditor lg)
     {
         _lg = lg;
-        _colorHighlight = BrushHelper.FreezeIt(BrushHelper.Brighter(210, Brushes.Blue));
+        _colorHighlight = BrushHelper.Brighter(210, Brushes.Blue);
     }
 
     private void SelectionChanged()
@@ -52,21 +52,28 @@ public class SelectedTextHighlighter : DocumentColorizingTransformer
             var selTxtCapture = selTxt;
             Task.Run(() =>
             {
-                string tx = doc.CreateSnapshot().Text;
-                var locations = new List<int>();
-                int index = tx.IndexOf(selTxtCapture, 0, StringComparison.Ordinal);
-                while (index >= 0)
+                try
                 {
-                    locations.Add(index);
-                    int st = index + selTxtCapture.Length;
-                    if (st >= tx.Length) break;
-                    index = tx.IndexOf(selTxtCapture, st, StringComparison.Ordinal);
-                }
+                    string tx = doc.CreateSnapshot().Text;
+                    var locations = new List<int>();
+                    int index = tx.IndexOf(selTxtCapture, 0, StringComparison.Ordinal);
+                    while (index >= 0)
+                    {
+                        locations.Add(index);
+                        int st = index + selTxtCapture.Length;
+                        if (st >= tx.Length) break;
+                        index = tx.IndexOf(selTxtCapture, st, StringComparison.Ordinal);
+                    }
 
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    OnHighlightChanged?.Invoke(selTxtCapture, locations);
-                });
+                    if (_isEnabled)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            OnHighlightChanged?.Invoke(selTxtCapture, locations);
+                        });
+                    }
+                }
+                catch { /* document may have been disposed */ }
             });
         }
         else

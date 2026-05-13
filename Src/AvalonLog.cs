@@ -94,6 +94,7 @@ public class AvalonLog : ContentControl
 
     private void PrintToLog()
     {
+        if (!_isAlive) return;
         string txt;
         lock (_buffer)
         {
@@ -136,7 +137,7 @@ public class AvalonLog : ContentControl
         if (_docLength > _maxCharsInLog && _isAlive)
         {
             _stillLessThanMaxChars = false;
-            _log.Dispatcher.Invoke(PrintToLog);
+            try { _log.Dispatcher.Invoke(PrintToLog); } catch (InvalidOperationException) { } catch (TaskCanceledException) { }
             string itsOverTxt = $"{NewLineStr}{NewLineStr}  **** STOP OF LOGGING **** Log has more than {_maxCharsInLog} characters! Clear Log view first {NewLineStr}{NewLineStr}{NewLineStr}{NewLineStr} ";
             lock (_buffer)
             {
@@ -144,7 +145,7 @@ public class AvalonLog : ContentControl
                 _buffer.AppendLine(itsOverTxt);
                 _docLength += itsOverTxt.Length;
             }
-            _log.Dispatcher.Invoke(PrintToLog);
+            try { _log.Dispatcher.Invoke(PrintToLog); } catch (InvalidOperationException) { } catch (TaskCanceledException) { }
         }
         else if (_dontPrintJustBuffer)
         {
@@ -156,7 +157,7 @@ public class AvalonLog : ContentControl
                 {
                     if (Interlocked.Read(ref _printCallsCounter) == k && _isAlive)
                     {
-                        _log.Dispatcher.Invoke(PrintToLog);
+                        try { _log.Dispatcher.Invoke(PrintToLog); } catch (InvalidOperationException) { } catch (TaskCanceledException) { }
                     }
                     timer?.Dispose();
                 }
@@ -170,7 +171,7 @@ public class AvalonLog : ContentControl
         {
             if (_stopWatch.ElapsedMilliseconds > _printInterval && _isAlive)
             {
-                _log.Dispatcher.Invoke(PrintToLog);
+                try { _log.Dispatcher.Invoke(PrintToLog); } catch (InvalidOperationException) { } catch (TaskCanceledException) { }
             }
             else
             {
@@ -180,7 +181,7 @@ public class AvalonLog : ContentControl
                 {
                     if (Interlocked.Read(ref _printCallsCounter) == k && _isAlive)
                     {
-                        _log.Dispatcher.Invoke(PrintToLog);
+                        try { _log.Dispatcher.Invoke(PrintToLog); } catch (InvalidOperationException) { } catch (TaskCanceledException) { }
                     }
                     timer?.Dispose();
                 }, null, _lastPrintDelay, Timeout.Infinite);
@@ -215,13 +216,23 @@ public class AvalonLog : ContentControl
     public new FontFamily FontFamily
     {
         get => _log.FontFamily;
-        set => _log.FontFamily = value;
+        set { _log.FontFamily = value; SyncDefaultBrush(); }
     }
 
     public new double FontSize
     {
         get => _log.FontSize;
-        set => _log.FontSize = value;
+        set { _log.FontSize = value; SyncDefaultBrush(); }
+    }
+
+    private void SyncDefaultBrush()
+    {
+        var newBrush = BrushHelper.FreezeIt((SolidColorBrush)_log.Foreground.Clone());
+        if (_defaultBrush != newBrush)
+        {
+            _defaultBrush = newBrush;
+            _color.SetDefaultBrush(_defaultBrush);
+        }
     }
 
     public bool ShowLineNumbers
@@ -297,16 +308,21 @@ public class AvalonLog : ContentControl
             Interlocked.Exchange(ref _printCallsCounter, 0L);
         }
 
-        _log.Dispatcher.Invoke(() =>
+        try
         {
-            _log.Clear();
-            _offsetColors.Clear();
-            _offsetColors.Add(new NewColor(-1, null));
-            _defaultBrush = BrushHelper.FreezeIt((SolidColorBrush)_log.Foreground.Clone());
-            _color.SetDefaultBrush(_defaultBrush);
-            _stopWatch.Restart();
-            _dontPrintJustBuffer = false;
-        });
+            _log.Dispatcher.Invoke(() =>
+            {
+                _log.Clear();
+                _offsetColors.Clear();
+                _offsetColors.Add(new NewColor(-1, null));
+                _defaultBrush = BrushHelper.FreezeIt((SolidColorBrush)_log.Foreground.Clone());
+                _color.SetDefaultBrush(_defaultBrush);
+                _stopWatch.Restart();
+                _dontPrintJustBuffer = false;
+            });
+        }
+        catch (InvalidOperationException) { }
+        catch (TaskCanceledException) { }
     }
 
     public LogTextWriter GetTextWriter(int red, int green, int blue)
@@ -389,6 +405,10 @@ public class AvalonLog : ContentControl
         PrintOrBuffer(s, true, _customBrush);
     }
 
+    /// <summary>
+    /// Appends an empty line. The blank line inherits the color of the previous message
+    /// to maintain visual continuity within colored blocks. This is a deliberate design choice.
+    /// </summary>
     public void AppendLine()
     {
         var br = _prevMsgBrush ?? _defaultBrush;
