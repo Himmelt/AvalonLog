@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <UseWPF>true</UseWPF>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+
+    <Authors>GoswinR, Himmelt</Authors>
+    <Copyright>Goswin Rothenthal, Himmelt 2026</Copyright>
+
+    <PackageDescription>A fast and thread-safe WPF text viewer for colored text. Based on AvalonEdit</PackageDescription>
+    <Description>A fast and thread-safe WPF text viewer for colored text. Based on AvalonEdit</Description>
+
+    <PackageTags>wpf;console;csharp;avalonedit</PackageTags>
+
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>logo.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <DebugType>embedded</DebugType>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+    <RepositoryUrl>https://github.com/Himmelt/AvalonLog</RepositoryUrl>
+
+    <Title>$(AssemblyName)</Title>
+
+    <PackageProjectUrl>https://github.com/Himmelt/AvalonLog</PackageProjectUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AvalonEditB" Version="2.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>
