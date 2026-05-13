@@ -22,6 +22,8 @@ public class AvalonLog : ContentControl {
     private long _printInterval = 50L;
     private long _printCallsCounter = 0;
     private int _maxCharsInLog = 1024_000;
+    private int _maxVisibleLines = 0;
+    private double _trimRatio = 1.1;
     private bool _dontPrintJustBuffer = false;
     private bool _stillLessThanMaxChars = true;
     private SolidColorBrush? _prevMsgBrush = null;
@@ -84,6 +86,44 @@ public class AvalonLog : ContentControl {
         return txt;
     }
 
+    private void TrimExcessLines() {
+        if (_maxVisibleLines <= 0) return;
+        int lineCount = _log.Document.LineCount;
+        int threshold = (int)(_maxVisibleLines * _trimRatio);
+        if (lineCount <= threshold) return;
+
+        int removeCount = lineCount - _maxVisibleLines;
+        int removeLength = _log.Document.GetLineByNumber(removeCount + 1).Offset;
+        _log.Document.Remove(0, removeLength);
+
+        // Adjust _offsetColors: find last entry in removed range, keep it (Off=0), remove prior entries, shift remaining
+        int lastInRangeIdx = -1;
+        for (int i = 0; i < _offsetColors.Count; i++) {
+            if (_offsetColors[i].Off < removeLength) {
+                lastInRangeIdx = i;
+            } else {
+                break;
+            }
+        }
+
+        if (lastInRangeIdx >= 0) {
+            _offsetColors[lastInRangeIdx] = new NewColor(0, _offsetColors[lastInRangeIdx].Brush);
+            if (lastInRangeIdx > 0) {
+                _offsetColors.RemoveRange(0, lastInRangeIdx);
+            }
+        }
+
+        for (int i = 0; i < _offsetColors.Count; i++) {
+            if (_offsetColors[i].Off > 0) {
+                _offsetColors[i] = new NewColor(_offsetColors[i].Off - removeLength, _offsetColors[i].Brush);
+            }
+        }
+
+        lock (_buffer) {
+            _docLength -= removeLength;
+        }
+    }
+
     private void PrintToLog() {
         if (!_isAlive) return;
         string txt;
@@ -95,6 +135,7 @@ public class AvalonLog : ContentControl {
             _log.AppendText(txt);
             _log.ScrollToEnd();
             if (_log.WordWrap) _log.ScrollToEnd();
+            TrimExcessLines();
             _stopWatch.Restart();
         }
     }
@@ -238,6 +279,16 @@ public class AvalonLog : ContentControl {
     public int MaximumCharacterAllowance {
         get => _maxCharsInLog;
         set => _maxCharsInLog = value;
+    }
+
+    public int MaxVisibleLines {
+        get => _maxVisibleLines;
+        set => _maxVisibleLines = value;
+    }
+
+    public double TrimRatio {
+        get => _trimRatio;
+        set => _trimRatio = Math.Clamp(value, 1.0, 2.0);
     }
 
     [Obsolete("It is not actually obsolete, but normally not used, so hidden from editor tools.")]
