@@ -8,8 +8,8 @@
     <Authors>GoswinR, Himmelt</Authors>
     <Copyright>Goswin Rothenthal, Himmelt 2026</Copyright>
 
-    <PackageDescription>A fast and thread-safe WPF text viewer for colored text. Based on AvalonEdit</PackageDescription>
-    <Description>A fast and thread-safe WPF text viewer for colored text. Based on AvalonEdit</Description>
+    <PackageDescription>一个快速且线程安全的 WPF 彩色文本日志查看器。基于 AvalonEdit</PackageDescription>
+    <Description>一个快速且线程安全的 WPF 彩色文本日志查看器。基于 AvalonEdit</Description>
 
     <PackageTags>wpf;console;csharp;avalonedit</PackageTags>
 

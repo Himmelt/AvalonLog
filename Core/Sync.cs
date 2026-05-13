@@ -19,12 +19,12 @@ internal static class SyncAvalonLog {
 
         if (_ctx == null && logErrorsOnDesktop && !_errorFileWrittenOnce) {
             string time = DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss-fff");
-            string filename = $"AvalonLog-SynchronizationContext setup failed-{time}.txt";
+            string filename = $"AvalonLog-同步上下文设置失败-{time}.txt";
             string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string file = System.IO.Path.Combine(desktop, filename);
-            try { System.IO.File.WriteAllText(file, "Failed to get DispatcherSynchronizationContext"); } catch { }
+            try { System.IO.File.WriteAllText(file, "获取 DispatcherSynchronizationContext 失败"); } catch { }
             _errorFileWrittenOnce = true;
-            throw new Exception("See " + file);
+            throw new Exception("详见 " + file);
         }
     }
 

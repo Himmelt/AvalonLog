@@ -165,7 +165,7 @@ public class AvalonLog : ContentControl {
         if (_docLength > _maxCharsInLog && _isAlive) {
             _stillLessThanMaxChars = false;
             try { _log.Dispatcher.Invoke(PrintToLog); } catch (InvalidOperationException) { } catch (TaskCanceledException) { }
-            string itsOverTxt = $"{NewLine}{NewLine}  **** STOP OF LOGGING **** Log has more than {_maxCharsInLog} characters! Clear Log view first {NewLine}{NewLine}{NewLine}{NewLine} ";
+            string itsOverTxt = $"{NewLine}{NewLine}  **** 日志输出已停止 **** 日志已超过 {_maxCharsInLog} 个字符！请先清除日志视图 {NewLine}{NewLine}{NewLine}{NewLine} ";
             lock (_buffer) {
                 _offsetColors.Add(new NewColor(_docLength, BrushHelper.FreezeIt(Brushes.Red)));
                 _buffer.AppendLine(itsOverTxt);
@@ -295,7 +295,7 @@ public class AvalonLog : ContentControl {
         set => _trimRatio = Math.Clamp(value, 1.0, 2.0);
     }
 
-    [Obsolete("It is not actually obsolete, but normally not used, so hidden from editor tools.")]
+    [Obsolete("该成员并非真正过时，只是通常不使用，因此对编辑器工具隐藏。")]
     public TextEditor AvalonEdit => _log;
 
     public SelectedTextHighlighter SelectedTextHighLighter => _hiLi;
@@ -393,8 +393,8 @@ public class AvalonLog : ContentControl {
     }
 
     /// <summary>
-    /// Appends an empty line. The blank line inherits the color of the previous message
-    /// to maintain visual continuity within colored blocks. This is a deliberate design choice.
+    /// 追加一个空行。空行继承前一条消息的颜色，
+    /// 以保持彩色块内的视觉连续性。这是经过深思熟虑的设计选择。
     /// </summary>
     public void AppendLine() {
         var br = _prevMsgBrush ?? _defaultBrush;
